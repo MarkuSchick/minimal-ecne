@@ -1,118 +1,46 @@
-# Ecne (R1CSConstraintSolver.jl)
+# Minimal Ecne Solver based on https://github.com/franklynwang/EcneProject
 
-## Introduction
+# Requirements
 
-zk-SNARKs are a method for generating zero-knowledge proofs of arbitrary functions, as long as these functions can be expressed as the result of a R1CS (a rank-one constraint system). However, one still needs to convert functions into R1CS form. As this is a laborious process (though still far easier than starting from scratch), Ecne, named after the Celtic god of wisdom, is a tool that can be used to translate functions into R1CS form, in its current form, by verifying that R1CS equations uniquely determine outputs given inputs (i.e. that the constraints are _sound_).
+- [install julia](https://github.com/JuliaLang/juliaup)
+- [install just](https://github.com/casey/just)
 
-## What is Ecne?
+# Clone Ecne
 
-The goal of Ecne is to make it easier to convert functions into R1CS form. As of right now, Ecne is used to verify that certain sets of R1CS constraints uniquely identify functions. Ecne also supports adding certain functions to a trusted codebase, so that they do not need to be re-verified after they've been verified once. Eventually, we hope to have Ecne not only show that R1CS constraints have unique solutions, but also show that they correspond to formally specified mathematical functions as well.
+Clone the `Ecne` repository:
 
-## API
-
-The primary user facing function is `solveWithTrustedFunctions`. The function takes in the R1CS file of the equation you want (which specifies functions you want) and the r1cs files of Trusted functions with their names. It returns `true` when able to verify the soundness of the constraints, and `false` otherwise. Note that `false` does not mean that the constraints aren't sound, it just means that Ecne is unable to prove that the constraints are sound.
-
-## Algorithm Details
-
-See [here](https://hackmd.io/@ONwIGWrPRcutB_-IRIqcUQ/HkENkNtec) for algorithmic details.
-
-## Setup
-
-First, clone the repository:
-
-```bash
-git clone https://github.com/franklynwang/EcneProject
+```
+git clone https://github.com/MarkuSchick/minimal-ecne.git
 ```
 
-Then, clone the circomlib library in Circom_Functions/
+Install Ecne
 
-```bash
-git clone https://github.com/iden3/circomlib
 ```
-
-The following requirements must be present in your environment.
-
-- [Julia 1.7+](https://julialang.org/)
-- [Just](https://github.com/casey/just): a command runner
-
-Then, run the following command to instantiate the Julia package environment.
-
-```bash
+cd EcneProject
 just install
 ```
 
-To run the interactive [Julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/) or open a [Pluto](https://github.com/fonsp/Pluto.jl) notebook server, use the following commands:
+# How to use Ecne ?
 
-```bash
-just repl      # open Julia REPL (can add packages here)
-just notebook  # start server (try opening hard_solve.jl)
-```
-
-If you make edits and would like to check that all tests still pass, please use
-
-```bash
-just test
-```
-
-## Verifications
-
-To verify the correctness of the ECDSA privToPub circuit given the correctness of the SECP circuit, first, we will need to obtain the R1CS file for the ECDSA circuit, which is unfortunately too large to include in this repository. To generate it, you need the [Circom Library](https://docs.circom.io/getting-started/installation/), after which you run the following command in Circom_Functions:
-
-```bash
-circom ecdsa.circom --r1cs --O0
-```
-
-Note the O0 compilation is needed to make abstraction possible. **Note that this means using optimized constraints in production assumes the correctness of the Circom Compiler, and that the optimized constraints are equivalent to the non-optimized ones**.
-
-Finally, simply run `julia --project=. examples/ecdsa_secp_abstraction.jl` to show that ECDSA has sound constraints given if we trust the `Secp256k1AddUnequal` command
-
-To verify the correctness of the SECP circuit given BigMultModP and BigLessThan, simply run `julia --project=. examples/secpk1_abstraction.jl`
-
-To see benchmarks on several circuits, run `just bench`.
-
-### Command line client and REST API 
-
-The `src/` directory contains a Julia script that can be used to invoke Ecne from
-the command line:
+Compile your circuit [without any optimization](https://docs.circom.io/getting-started/compilation-options/#flags-and-options-related-to-the-compilers-output):
 
 ```
-$ julia --project=. src/Ecne.jl --help
-
-usage: Ecne.jl --r1cs R1CS --name NAME --sym SYM [--trusted TRUSTED]
-               [-h]
-
-Ecne command-line helper
-
-optional arguments:
-  --r1cs R1CS        de-optimized R1CS file to verify
-  --name NAME        Circuit name
-  --sym SYM          symbol file with labels
-  --trusted TRUSTED  Optional trusted R1CS file
-  -h, --help         show this help message and exit
-
+circom <path-to-circom-file> --r1cs --O0 --sym
 ```
 
-With a R1CS file that has been de-optimizedi and its symbol file, Ecne can be invoked via:
+This will generate a `r1cs` file and a `sym` file.
+
+Then, run Ecne with the following command:
 
 ```
-$ julia --project=. src/Ecne.jl --r1cs target/division.r1cs --name division --sym target/division.sym
-
-[...]
-
-constraint #2
-(-1 * main.y2) * (1 * main.x3) = (-1 * main.y1)
-constraint #3
-0 * 0 = (-1 * main.x4 + -1 * main.out + 1 * main.y2)
-("R1CS function division has potentially unsound constraints",)
-
+julia --project=. src/Ecne.jl --r1cs <path-to-r1cs-file> --name <name-of-circuit> --sym <path-to-sym-file>
 ```
 
-Moreover, external tools can trigger verifications via the REST API defined at `src/Server.jl`. You can find an example at scripts/launch_post.sh:
+For more options run: `just help`
 
-```
-curl -X POST http://127.0.0.1:8000/verify -H 'Content-Type: application/json' -d '{"r1cs":"target/division.r1cs","sym":"target/division.sym", "id":"division"}'
-```
+## Todo
 
-## Authorship
-
-Made by [Franklyn Wang](https://twitter.com/franklyn_wang)
+- [ ] Publish package
+- [ ] Run benchmarks in CI
+- [ ] Fix linter findings
+- [ ] Run linter in CI
