@@ -1,19 +1,28 @@
 
-function solve_constraints(field::AbstractAlgebra.GFField{BigInt}, constraints::Array{R1CSEquation})
+function solve_constraints(
+    field::AbstractAlgebra.GFField{BigInt},
+    constraints::Array{R1CSEquation},
+)
     num_unknowns = [length(setdiff(getVariables(x), Set(1))) for x in constraints]
     q = Queue{Int64}()
-    for i in 1:length(constraints)
+    for i = 1:length(constraints)
         if num_unknowns[i] <= 1
             enqueue!(q, i)
         end
     end
 
-    num_variables = maximum([maximum([maximum(keys(constraints[i].a)), maximum(keys(constraints[i].b)), maximum(keys(constraints[i].c))]) for i in 1:length(constraints)])
+    num_variables = maximum([
+        maximum([
+            maximum(keys(constraints[i].a)),
+            maximum(keys(constraints[i].b)),
+            maximum(keys(constraints[i].c)),
+        ]) for i = 1:length(constraints)
+    ])
 
-    variables = [VariableState(i) for i in 1:num_variables]
+    variables = [VariableState(i) for i = 1:num_variables]
     variables[1] = oneVar(variables[1], field(1)) # set variable to one
     variable_to_indices = DefaultDict{Base.Int64,Vector{Int64}}(Vector{Int64})
-    for i in 1:length(constraints)
+    for i = 1:length(constraints)
         for j in getVariables(constraints[i])
             append!(variable_to_indices[j], i)
         end
@@ -93,7 +102,7 @@ function solve_constraints(field::AbstractAlgebra.GFField{BigInt}, constraints::
             true_equation = constraints[lead_idx]
             var_indices = collect(getVariables(true_equation))
             ambiguous_vars = []
-            for i in 1:length(var_indices)
+            for i = 1:length(var_indices)
                 if length(variables[var_indices[i]].values) == 2
                     push!(ambiguous_vars, var_indices[i])
                 end
@@ -118,7 +127,8 @@ function solve_constraints(field::AbstractAlgebra.GFField{BigInt}, constraints::
                     return res
                 end
 
-                if get_value(true_equation.a) * get_value(true_equation.b) == get_value(true_equation.c)
+                if get_value(true_equation.a) * get_value(true_equation.b) ==
+                   get_value(true_equation.c)
                     if length(assignments) == 0
                         push!(assignments, x)
                     end

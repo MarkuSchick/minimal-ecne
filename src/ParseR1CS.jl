@@ -47,7 +47,9 @@ function readArrInt(obj)::BigInt
 end
 
 
-function readR1CS(filename::String)::Tuple{Vector{R1CSEquation},Vector{Int64},Vector{Int64},Int64}
+function readR1CS(
+    filename::String,
+)::Tuple{Vector{R1CSEquation},Vector{Int64},Vector{Int64},Int64}
     arr = []
     fsize = stat(filename).size
     s = open(filename, "r")
@@ -120,7 +122,10 @@ function readR1CS(filename::String)::Tuple{Vector{R1CSEquation},Vector{Int64},Ve
             R1CSEquation(constraint_new[1], constraint_new[2], constraint_new[3]),
         )
     end
-    return equations, vcat([Int64(1)], [Int64(i) for i = 2+pub_out:1+pub_out+pub_in+priv_in]), [Int64(i) for i = 2:1+pub_out], num_wires + 1
+    return equations,
+    vcat([Int64(1)], [Int64(i) for i = 2+pub_out:1+pub_out+pub_in+priv_in]),
+    [Int64(i) for i = 2:1+pub_out],
+    num_wires + 1
 end
 
 function getVariables(equation::R1CSEquation)
@@ -145,10 +150,12 @@ function getVariables(equation::R1CSEquation)
     return s
 end
 
-function hash_r1cs_equation(
-    e::R1CSEquation
-)
-    l = vcat(sort!([x.d for x in values(e.a)]), sort!([x.d for x in values(e.b)]), sort!([x.d for x in values(e.c)]))
+function hash_r1cs_equation(e::R1CSEquation)
+    l = vcat(
+        sort!([x.d for x in values(e.a)]),
+        sort!([x.d for x in values(e.b)]),
+        sort!([x.d for x in values(e.c)]),
+    )
     l = [x for x in l if x != 0]
 
     return hash(l)
@@ -182,11 +189,14 @@ function printEquation(x::R1CSEquation, index_to_signal::Array{String,1})
         return "(" *
                join(
                    [
-                       string(fix_number(x[key].d)) * " * " * string(index_to_signal[key-1]) * ""
-                       for key in nonzeroKeys(x)
+                       string(fix_number(x[key].d)) *
+                       " * " *
+                       string(index_to_signal[key-1]) *
+                       "" for key in nonzeroKeys(x)
                    ],
                    " + ",
-               ) * ")"
+               ) *
+               ")"
     end
     str1 = get_lin(x.a)
     str2 = get_lin(x.b)
@@ -194,6 +204,14 @@ function printEquation(x::R1CSEquation, index_to_signal::Array{String,1})
     return (str1 * " * " * str2 * " = " * str3)
 end
 
-export readFour, readEight, readArrInt, readR1CS, R1CSEquation, getVariables, hash_r1cs_equation, printEquation, nonzeroKeys
+export readFour,
+    readEight,
+    readArrInt,
+    readR1CS,
+    R1CSEquation,
+    getVariables,
+    hash_r1cs_equation,
+    printEquation,
+    nonzeroKeys
 
 end

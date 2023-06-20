@@ -72,7 +72,7 @@ begin
         a::VariableState,
         lb::AbstractAlgebra.GFElem{BigInt},
         ub::AbstractAlgebra.GFElem{BigInt},
-        neg_bounds::Bool=false,
+        neg_bounds::Bool = false,
     )
         # lies between lb and ub
         return VariableState(a.index, true, a.unique, a.values, lb, ub, neg_bounds, a.abz)
@@ -81,7 +81,9 @@ end
 
 function printState(x::VariableState)
     bounds = [x.lb.d, x.ub.d]
-    if bounds[1] == 0 && bounds[2] == 21888242871839275222246405745257275088548364400416034343698204186575808495616
+    if bounds[1] == 0 &&
+       bounds[2] ==
+       21888242871839275222246405745257275088548364400416034343698204186575808495616
         bounds = []
     end
     println(

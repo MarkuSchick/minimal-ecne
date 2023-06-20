@@ -18,7 +18,7 @@ function abstraction(
     known_inputs::Array{Base.Int64},
     sub_equation::Array{R1CSEquation},
     known_outputs::Array{Base.Int64},
-    printRes::Bool=false,
+    printRes::Bool = false,
 )
     if printRes
         println("known inputs", known_inputs)
@@ -34,9 +34,9 @@ function abstraction(
         println("compute hash ", f - a)
     end
     candidates = []
-    for i in 1:length(constraints)-length(sub_equation)+1
+    for i = 1:length(constraints)-length(sub_equation)+1
         matches = true
-        for j in 1:length(sub_equation)-1
+        for j = 1:length(sub_equation)-1
             if hashed_constraints[i+j-1] != hashed_sub_equation[j]
                 matches = false
                 break
@@ -51,10 +51,10 @@ function abstraction(
         println("hash match ", b - f)
     end
     matches = [] # contains index, as well as (orig_var -> new_var maps)
-    appearance_map_orig = DefaultDict{
-        Base.Int64,
-        Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}},
-    }(Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}})
+    appearance_map_orig =
+        DefaultDict{Base.Int64,Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}}}(Vector{
+            Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}},
+        },)
     sub_eq_counter = 1
     # one can also do this witha a Rabin-Karp Hash.
     for j = 1:length(sub_equation)
@@ -74,7 +74,7 @@ function abstraction(
         appearance_map_cur = DefaultDict{
             Base.Int64,
             Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}},
-        }(Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}})
+        }(Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}},)
         app_counter = 0
         function addEquation(eq1, eq2)
             if !checkNonZeroValues(eq1, eq2)
@@ -109,8 +109,8 @@ function abstraction(
             continue
         end
 
-        l1 = sort(collect(appearance_map_cur), by=x -> [(y[1], y[2].d) for y in x[2]])
-        l2 = sort(collect(appearance_map_orig), by=x -> [(y[1], y[2].d) for y in x[2]])
+        l1 = sort(collect(appearance_map_cur), by = x -> [(y[1], y[2].d) for y in x[2]])
+        l2 = sort(collect(appearance_map_orig), by = x -> [(y[1], y[2].d) for y in x[2]])
         if length(l1) != length(l2)
             continue
         else
@@ -174,9 +174,7 @@ end
 
 
 function flip_keys(input_map::DefaultDict{Base.Int64,AbstractAlgebra.GFElem{BigInt}})
-    output_map = DefaultDict{Base.Int64,AbstractAlgebra.GFElem{BigInt}}(
-        F(0)
-    )
+    output_map = DefaultDict{Base.Int64,AbstractAlgebra.GFElem{BigInt}}(F(0))
     for key in keys(input_map)
         output_map[key] = -input_map[key]
     end
@@ -184,9 +182,7 @@ function flip_keys(input_map::DefaultDict{Base.Int64,AbstractAlgebra.GFElem{BigI
 end
 
 # Unoptimize function: Allows us to convert optimized circuits into unoptimized circuits, which means we don't sacrifice any speed at runtime, but verification is made substantially easier. 
-function R1CSUnOptimize(
-    input_r1cs::String,
-)
+function R1CSUnOptimize(input_r1cs::String)
     equations_main, knowns_main, outs_main = readR1CS(input_r1cs)
     all_equations = []
     num_variables = maximum([
@@ -199,7 +195,8 @@ function R1CSUnOptimize(
     cur_var = num_variables + 1
     macro_vars = Dict{DefaultDict{Base.Int64,AbstractAlgebra.GFElem{BigInt}},Base.Int64}()
     for i = 1:length(equations_main)
-        if (length(nonzeroKeys(equations_main[i].a)) == 0) && (length(nonzeroKeys(equations_main[i].b)) == 0)
+        if (length(nonzeroKeys(equations_main[i].a)) == 0) &&
+           (length(nonzeroKeys(equations_main[i].b)) == 0)
             push!(all_equations, equations_main[i])
         else
             new_eqs = [equations_main[i].a, equations_main[i].b]
@@ -241,9 +238,7 @@ function R1CSUnOptimize(
             var_2 = DefaultDict{Base.Int64,AbstractAlgebra.GFElem{BigInt}}(F(0))
             var_2[var_values[2]] = F(1)
 
-            push!(all_equations, R1CSEquation(var_1, var_2,
-                equations_main[i].c
-            ))
+            push!(all_equations, R1CSEquation(var_1, var_2, equations_main[i].c))
         end
     end
     return all_equations, knowns_main, outs_main

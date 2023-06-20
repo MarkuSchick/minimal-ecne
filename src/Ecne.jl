@@ -8,7 +8,7 @@ import R1CSConstraintSolver: solveWithTrustedFunctions
 
 function main(args)
 
-    s = ArgParseSettings(description="Ecne command-line helper")
+    s = ArgParseSettings(description = "Ecne command-line helper")
 
     @add_arg_table! s begin
         "--r1cs"
@@ -29,11 +29,15 @@ function main(args)
     #dict = Dict("result" => "empty", "constraints" => ["empty"])
 
     try
-        solveWithTrustedFunctions(parsed_args["r1cs"], parsed_args["name"], input_sym=parsed_args["sym"], debug=false)
+        solveWithTrustedFunctions(
+            parsed_args["r1cs"],
+            parsed_args["name"],
+            input_sym = parsed_args["sym"],
+            debug = false,
+        )
     catch e
         println("Error while running solveWithTrustedFunctions\n", e)
     end
 end
 
 main(ARGS)
-

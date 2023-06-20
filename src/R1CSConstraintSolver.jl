@@ -193,7 +193,7 @@ begin
         a::VariableState,
         lb::AbstractAlgebra.GFElem{BigInt},
         ub::AbstractAlgebra.GFElem{BigInt},
-        neg_bounds::Bool=false,
+        neg_bounds::Bool = false,
     )
         # lies between lb and ub
         return VariableState(a.index, true, a.unique, a.values, lb, ub, neg_bounds, a.abz)
@@ -225,10 +225,12 @@ function checkNonZeroValues(
     return true
 end
 
-function hash_r1cs_equation(
-    e::R1CSEquation
-)
-    l = vcat(sort!([x.d for x in values(e.a)]), sort!([x.d for x in values(e.b)]), sort!([x.d for x in values(e.c)]))
+function hash_r1cs_equation(e::R1CSEquation)
+    l = vcat(
+        sort!([x.d for x in values(e.a)]),
+        sort!([x.d for x in values(e.b)]),
+        sort!([x.d for x in values(e.c)]),
+    )
     l = [x for x in l if x != 0]
 
     return hash(l)
@@ -240,7 +242,7 @@ function abstraction(
     known_inputs::Array{Base.Int64},
     sub_equation::Array{R1CSEquation},
     known_outputs::Array{Base.Int64},
-    printRes::Bool=false,
+    printRes::Bool = false,
 )
     if printRes
         println("known inputs", known_inputs)
@@ -256,9 +258,9 @@ function abstraction(
         println("compute hash ", f - a)
     end
     candidates = []
-    for i in 1:length(constraints)-length(sub_equation)+1
+    for i = 1:length(constraints)-length(sub_equation)+1
         matches = true
-        for j in 1:length(sub_equation)-1
+        for j = 1:length(sub_equation)-1
             if hashed_constraints[i+j-1] != hashed_sub_equation[j]
                 matches = false
                 break
@@ -273,10 +275,10 @@ function abstraction(
         println("hash match ", b - f)
     end
     matches = [] # contains index, as well as (orig_var -> new_var maps)
-    appearance_map_orig = DefaultDict{
-        Base.Int64,
-        Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}},
-    }(Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}})
+    appearance_map_orig =
+        DefaultDict{Base.Int64,Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}}}(Vector{
+            Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}},
+        },)
     sub_eq_counter = 1
     # one can also do this witha a Rabin-Karp Hash.
     for j = 1:length(sub_equation)
@@ -296,7 +298,7 @@ function abstraction(
         appearance_map_cur = DefaultDict{
             Base.Int64,
             Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}},
-        }(Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}})
+        }(Vector{Tuple{Base.Int64,AbstractAlgebra.GFElem{BigInt}}},)
         app_counter = 0
         function addEquation(eq1, eq2)
             if !checkNonZeroValues(eq1, eq2)
@@ -331,8 +333,8 @@ function abstraction(
             continue
         end
 
-        l1 = sort(collect(appearance_map_cur), by=x -> [(y[1], y[2].d) for y in x[2]])
-        l2 = sort(collect(appearance_map_orig), by=x -> [(y[1], y[2].d) for y in x[2]])
+        l1 = sort(collect(appearance_map_cur), by = x -> [(y[1], y[2].d) for y in x[2]])
+        l2 = sort(collect(appearance_map_orig), by = x -> [(y[1], y[2].d) for y in x[2]])
         if length(l1) != length(l2)
             continue
         else
@@ -396,12 +398,12 @@ end
 
 function printState(x::VariableState)
     bounds = [x.lb.d, x.ub.d]
-    if bounds[1] == 0 && bounds[2] == 21888242871839275222246405745257275088548364400416034343698204186575808495616
+    if bounds[1] == 0 &&
+       bounds[2] ==
+       21888242871839275222246405745257275088548364400416034343698204186575808495616
         bounds = []
     end
-    println(
-        "Uniquely Determined: ",
-        x.unique)
+    println("Uniquely Determined: ", x.unique)
 
     if bounds == []
         println("Bounds: None")
@@ -409,10 +411,7 @@ function printState(x::VariableState)
         println("Bounds: [", bounds[1], ", ", bounds[2], "]")
     end
     if x.values != []
-        println(
-            "All possible values: ",
-            sort!([val.d for val in x.values])
-        )
+        println("All possible values: ", sort!([val.d for val in x.values]))
     end
     println()
 
@@ -443,11 +442,14 @@ function printEquation(x::R1CSEquation, index_to_signal::Array{String,1})
         return "(" *
                join(
                    [
-                       string(fix_number(x[key].d)) * " * " * string(fix_signal(key - 1)) * ""
-                       for key in nonzeroKeys(x)
+                       string(fix_number(x[key].d)) *
+                       " * " *
+                       string(fix_signal(key - 1)) *
+                       "" for key in nonzeroKeys(x)
                    ],
                    " + ",
-               ) * ")"
+               ) *
+               ")"
     end
     str1 = get_lin(x.a)
     str2 = get_lin(x.b)
@@ -462,12 +464,23 @@ function readJSON(filename::String)
         dicttxt = readall(f)  # file information to string
         dict = JSON.parse(dicttxt)  # parse and transform data
     end
-    return dict["constraints"], vcat([Int64(1)], [Int64(i) for i = 2+dict["nOutputs"]:1+dict["nOutputs"]+dict["nPubInputs"]+dict["nPrivInputs"]]), [Int64(i) for i = 2:1+dict["nOutputs"]], dict["nVars"]
+    return dict["constraints"],
+    vcat(
+        [Int64(1)],
+        [
+            Int64(i)
+            for
+            i = 2+dict["nOutputs"]:1+dict["nOutputs"]+dict["nPubInputs"]+dict["nPrivInputs"]
+        ],
+    ),
+    [Int64(i) for i = 2:1+dict["nOutputs"]],
+    dict["nVars"]
 end
 
 function solveJSON(filename::String, debug::Bool)
     constraints, known_inputs, known_outputs, nVars = readJSON(filename)
-    result = SolveConstraintsSymbolic(constraints, [], known_inputs, debug, known_outputs, nVars)
+    result =
+        SolveConstraintsSymbolic(constraints, [], known_inputs, debug, known_outputs, nVars)
     if result == true
         if length(function_list) != 0
             if printRes
@@ -502,13 +515,13 @@ end
 function solveWithTrustedFunctions(
     input_r1cs::String,
     input_r1cs_name::String;
-    trusted_r1cs::Vector{String}=Vector{String}([]),
-    trusted_r1cs_names::Vector{String}=Vector{String}([]),
-    debug::Bool=false,
-    printRes::Bool=true,
-    abstractionOnly::Bool=false,
-    input_sym::String="",
-    secp_solve::Bool=false
+    trusted_r1cs::Vector{String} = Vector{String}([]),
+    trusted_r1cs_names::Vector{String} = Vector{String}([]),
+    debug::Bool = false,
+    printRes::Bool = true,
+    abstractionOnly::Bool = false,
+    input_sym::String = "",
+    secp_solve::Bool = false,
 )
     a = Dates.now()
     @assert (length(trusted_r1cs) == length(trusted_r1cs_names))
@@ -524,7 +537,7 @@ function solveWithTrustedFunctions(
     if debug
         println("file read")
     end
-    function_list = sort(function_list, by=x -> -length(x[2]))
+    function_list = sort(function_list, by = x -> -length(x[2]))
     # sort functions long to short, to prevent accidentally substituting a subroutine that prevents substituting a bigger function. 
     specials = []
     reduced = equations_main
@@ -549,22 +562,33 @@ function solveWithTrustedFunctions(
     end
     b = Dates.now()
     println("time to prep inputs ", b - a)
-    result = SolveConstraintsSymbolic(reduced, specials, knowns_main, debug, outs_main, num_variables, input_sym, secp_solve)
+    result = SolveConstraintsSymbolic(
+        reduced,
+        specials,
+        knowns_main,
+        debug,
+        outs_main,
+        num_variables,
+        input_sym,
+        secp_solve,
+    )
     if result == true
         if length(function_list) != 0
             if printRes
                 msg = "R1CS function " *
-                      input_r1cs_name *
-                      " has sound constraints assuming trusted functions " *
-                      join([trusted_r1cs_names[i] for i = 1:length(function_list)], ", "), println(msg)
+                input_r1cs_name *
+                " has sound constraints assuming trusted functions " *
+                join([trusted_r1cs_names[i] for i = 1:length(function_list)], ", "),
+                println(msg)
                 #json_result["result"] = msg
             end
             return true
         else
             if printRes
-                msg = "R1CS function " *
-                      input_r1cs_name *
-                      " has sound constraints (No trusted functions needed!)"
+                msg =
+                    "R1CS function " *
+                    input_r1cs_name *
+                    " has sound constraints (No trusted functions needed!)"
                 println(msg)
                 #json_result["result"] = msg
             end
@@ -572,7 +596,8 @@ function solveWithTrustedFunctions(
         end
     else
         if printRes
-            msg = "R1CS function " * input_r1cs_name * " has potentially unsound constraints"
+            msg =
+                "R1CS function " * input_r1cs_name * " has potentially unsound constraints"
             println(msg)
             #json_result["result"] = msg
         end
@@ -584,11 +609,11 @@ function SolveConstraintsSymbolic(
     constraints::Vector{R1CSEquation},
     special_constraints::Vector{Any},
     known_variables::Vector{Int64},
-    debug::Bool=false,
-    target_variables::Vector{Int64}=[],
-    num_variables::Int=-1,
-    input_sym::String="default.sym",
-    secp_solve::Bool=false,
+    debug::Bool = false,
+    target_variables::Vector{Int64} = [],
+    num_variables::Int = -1,
+    input_sym::String = "default.sym",
+    secp_solve::Bool = false,
 )
     time_begin_solve = Dates.now()
 
@@ -1244,9 +1269,9 @@ function SolveConstraintsSymbolic(
                 end
                 function flip_coeffs(x)
                     if x >
-                       BigInt(20888242871839275222246405745257275088548364400416034343698204186575808495616)
+                       BigInt(20888242871839275222246405745257275088548364400416034343698204186575808495616,)
                         return x -
-                               BigInt(21888242871839275222246405745257275088548364400416034343698204186575808495617)
+                               BigInt(21888242871839275222246405745257275088548364400416034343698204186575808495617,)
                     else
                         return x
                     end
@@ -1600,7 +1625,7 @@ function SolveConstraintsSymbolic(
     println()
     ## parse sym file with csv reader
     if input_sym != ""
-        csv_reader = CSV.File(input_sym; header=["i1", "i2", "i3", "signal"], skipto=0)
+        csv_reader = CSV.File(input_sym; header = ["i1", "i2", "i3", "signal"], skipto = 0)
         index_to_signal = String[]
         for row in csv_reader
             push!(index_to_signal, "$(row.signal)")
