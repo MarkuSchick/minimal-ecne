@@ -22,6 +22,8 @@ just install
 
 # How to use Ecne ?
 
+## Compile
+
 Compile your circuit [without any optimization](https://docs.circom.io/getting-started/compilation-options/#flags-and-options-related-to-the-compilers-output):
 
 ```
@@ -30,18 +32,36 @@ circom <path-to-circom-file> --r1cs --O0 --sym
 
 This will generate a `r1cs` file and a `sym` file.
 
-Then, run Ecne with the following command:
+## Run Ecne
 
 ```
-julia --project=. src/Ecne.jl --r1cs <path-to-r1cs-file> --name <name-of-circuit> --sym <path-to-sym-file>
+julia --project=. src/Ecne.jl --r1cs NAME.r1cs --name NAME --sym NAME.sym
 ```
 
 For more options run: `just help`
 
-## Todo
+## Optional: Add Ecne to your path
 
-- [ ] Create an executable ([looks hard](https://discourse.julialang.org/t/how-to-create-an-exe-file-from-julia-code/30004/57))
-- [ ] Publish package
-- [ ] Run benchmarks in CI
-- [ ] Fix linter findings
-- [ ] Run linter in CI
+Add the following line to the .bashrc file:
+```
+alias ecne="julia --project='/PATH/minimal-ecne' '/PATH/src/Ecne.jl'"
+```
+
+Reload the .bashrc file:
+```
+source .bashrc
+```
+
+Ecne can now be run from the Command Line
+
+```
+ecne --help
+```
+
+# Next Steps
+
+- [ ] create [an executable](https://discourse.julialang.org/t/how-to-create-an-exe-file-from-julia-code/30004/57)
+- [ ] publish package
+- [ ] run benchmarks in CI
+- [ ] fix linter findings
+- [ ] run linter in CI
