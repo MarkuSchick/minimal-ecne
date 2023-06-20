@@ -3,6 +3,9 @@ julia := "julia --project=."
 install:
     {{julia}} -e "import Pkg; Pkg.instantiate()"
 
+resolve:
+    {{julia}} -e "import Pkg; Pkg.resolve()"
+
 repl:
     {{julia}}
 
@@ -10,7 +13,7 @@ notebook:
     {{julia}} -e "import Pluto; Pluto.run()"
 
 format:
-    {{julia}} -e "using JuliaFormatter; format(\"src\", verbose=true); format(\"test\", verbose=true); format(\"bench\", verbose=true)"
+    {{julia}} -e "using JuliaFormatter; format(\".\", verbose=true); "
 
 bench:
     {{julia}} bench/bench.jl
@@ -29,4 +32,13 @@ check:
     fi
 
 test:
-    {{julia}} -e "import Pkg; Pkg.test()"
+    {{julia}} --project=. test/runtests.jl
+
+lint:
+    {{julia}} -e "using JET, R1CSConstraintSolver; @show report_package(R1CSConstraintSolver); "
+
+examples:
+    {{julia}} --project=. examples/division/verify.jl
+
+help:
+    {{julia}} --project=. src/Ecne.jl --help
