@@ -16,7 +16,7 @@ git clone https://github.com/MarkuSchick/minimal-ecne.git
 Install Ecne
 
 ```
-cd EcneProject
+cd minmal-ecne
 just install
 ```
 
@@ -40,6 +40,7 @@ For more options run: `just help`
 
 ## Todo
 
+- [ ] Create an executable ([looks hard](https://discourse.julialang.org/t/how-to-create-an-exe-file-from-julia-code/30004/57))
 - [ ] Publish package
 - [ ] Run benchmarks in CI
 - [ ] Fix linter findings
